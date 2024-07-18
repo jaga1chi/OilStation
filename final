@@ -1,0 +1,463 @@
+import tkinter as tk
+from random import *
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+
+
+month = 0
+# 석유와 전기 관련 변수(수요, 구매가, 판매가, 보유량)
+oilDemand = 300000 # 석유 관련
+oilBuyPrice = 1200
+oilSellPrice = 1400
+oilPossess = 0
+elecDemand = 100000 # 전기 관련
+elecBuyPrice = 1300
+elecSellPrice = 1400
+elecPossess = 0
+oilBuy = 0
+elecBuy = 0
+elecProfit = 0
+oilProfit = 0
+# 그래프 표시를 위한 변수
+oilBuyPriceList = []
+elecBuyPriceList = []
+oilSellList = []
+elecSellList = []
+# 기타 변수
+solar_cost=0
+guitarist = 0
+reputation = 50 # 평판
+solar = 0 # 태양열 패널의 수, 살땐 비싸지만 기타잡비(절대비용)이 줄고 평판도 올라감
+cost=1000000
+seasonList = [ # 계절 리스트
+    ['봄', 2, 3, 4, 14, 15, 16],
+    ['여름', 5, 6, 7, 17, 18, 19],
+    ['가을', 8, 9, 10, 20, 21, 22],
+    ['겨울', 0, 1, 11, 12, 13, 23]
+]
+money = 1000000000 # 돈(10억)
+eventName = ''
+
+def randChange(target, startNum, endNum) : # 값 퍼센트에 따라 변환
+  target = int(target * (randint(startNum, endNum)) / 100 + 0.5)
+  return target 
+
+def change(target, percent) :
+  target = int(target * percent / 100 + 0.5)
+  return target
+
+event = [['운송비 변동',85,115,100,100,85,115,100,100,6,None], #3
+         ['석유 생산지역 지진',110,130,100,100,100,100,100,100,8,None], #4
+         ['석유 수출 거부',150,200,100,100,100,100,100,100,8,None], #4
+         ['환율 변화',75,125,100,100,100,100,100,100,6,None], #3
+         ['석유 매장지 발견',60,87,100,100,100,100,100,100,6,None], #3
+         ['전기차 충전소 지원 정책',100,100,100,100,85,95,100,100,6,None], #3
+         ['인근 지역 발전소 설치',100,100,100,100,85,90,100,100,6,None], #3
+         ['도로 신설',100,100,120,140,100,100,120,140,8,None], #4
+         ['전기 자동차 가격 상승',100,100,105,115,100,100,85,95,6,None], #3
+         ['내연기관 자동차 가격 상승',100,100,85,95,100,100,105,115,6,None], #3
+         ['전기 자동차 가격 하락',100,100,85,95,100,100,105,115,6,None], #3 
+         ['내연기관 자동차 가격 하락',100,100,105,115,100,100,85,95,6,None], #3
+         ['경쟁사 가격 상승',100,100,105,115,100,100,105,115,10,None],#3
+         ['경쟁사 가격 하락',100,100,80,95,100,100,80,95,10,None],#3
+         ['여름철 태풍',100,100,60,80,100,100,65,80,10,'여름'], #5 여름 
+         ['봄철 태풍',100,100,60,80,100,100,65,80,6,'봄'], #3
+         ['가을철 태풍',100,100,60,80,100,100,65,80,6,'가을'], #3
+         ['폭설',100,100,60,80,100,100,65,80,8,'겨울'], #4
+         ['관광지 건설',100,100,150,300,100,100,150,300,8,None],#4
+         ['GTX 건설',100,100,50,75,100,100,50,75,8,None], #4
+         ['지역축제',100,100,150,250,100,100,150,250,10,None], #5
+         ['전기차 보급 정책',100,100,70,90,100,100,130,160,10,None], #5
+         ['전기 버스, 택시 지원 정책',100,100,90,95,100,100,120,150,8,None], #4
+         ['국제 환경보존 협약',100,100,60,80,100,100,120,140,10,None], #5
+         ['환경 캠페인 활동 증가',100,100,85,95,100,100,110,120,6,None],#3 => 90
+         ['전기 충전소 화재 사건 발생',100,100,100,100,100,100,85,95,6,None], #3
+         ['금리 변동',100,100,90,110,100,100,90,100,6,None], #3
+         ['전기차 기술 발전',100,100,90,95,100,100,110,120,8,None] #4
+         ]
+
+
+# Function to create a button and pack or place it into the window
+def create_button(window, text, command, bottom_right=False, bottom_left=False, center_bottom=False, x_offset=0, y_offset=0, width=10, height=2):
+    button = tk.Button(window, text=text, font=('malgungothic', 14), command=command, borderwidth=10, width=width, height=height)
+    if bottom_right:
+        button.place(relx=0.95 - x_offset, rely=0.95 - y_offset, anchor='se')
+    elif bottom_left:
+        button.place(relx=0.05 + x_offset, rely=0.95 - y_offset, anchor='sw')
+    elif center_bottom:
+        button.place(relx=0.5, rely=0.85 - y_offset, anchor='s')
+    else:
+        button.pack(pady=30)
+    return button
+
+def draw_home():
+    clear_screen()
+    
+    
+    title_label = tk.Label(window, text="대격변의 시대에서 주유소로 살아남기!", font=('malgungothic', 50))
+    title_label.pack(pady=200)
+
+    start_button = create_button(window, "Start", go_to_profit_report, width=20, height=3)
+    how_to_play_button = create_button(window, "How to play", go_to_information_menu, width=20, height=3)
+
+def go_to_information_menu():
+    clear_screen()
+    info_label = tk.Label(window, text="How to play!", font=('malgungothic', 50))
+    info_label.pack(pady=40)
+
+    instructions = [
+        "'주유소 키우기'는 주유소를 운영하며 24개월 동안 최대한 많은 수익을 창출하는 전략 시뮬레이션 게임입니다. ","다음의 단계를 따라 게임을 진행하세요:","",
+        "1. 'Start' 버튼을 눌러 게임을 시작합니다.",
+        "2. 매월 게임 시작 시 월간 보고서가 표시됩니다. 석유와 전기의 구매 가격, 판매량, 수익 등의 정보를 확인하세요.","태양 패널 구입비와 기타 잡비, 현재 자산도 확인할 수 있습니다.",
+        "3. 월간 보고서 확인 후 주간 뉴스가 표시됩니다. 이벤트와 경제 상황 변동 사항을 확인하세요. ","이벤트는 석유와 전기의 구매 가격과 수요에 영향을 줍니다.",
+        "4. 월간 뉴스 확인 후, 석유와 전기의 판매 가격과 구매량을 설정하여 수익을 극대화하세요. ","이후 태양열 패널을 추가로 구매하거나 '이번월 끝내기' 버튼을 눌러 다음 단계로 진행하세요.",
+        "5. 변화주기 메뉴에서 태양광 패널을 추가할 수 있습니다. 태양광 패널을 추가하면 기타 잡비가 줄어들고 평판이 올라갑니다.",
+        "6. 설정이 완료되면 수익이 계산됩니다. 석유와 전기의 수익이 합산되고, 기타 잡비가 차감됩니다. ","다음 달로 진행하여 다시 월간 보고서를 확인하세요.","",
+        "tip:석유와 전기의 수요를 예측하여 적절한 구매량을 설정하세요. 수요를 초과하지 않도록 주의하세요.",
+        "판매 가격을 너무 높게 설정하면 수요가 줄어들 수 있으므로 적절한 가격을 설정하세요.",
+        "태양광 패널을 추가하면 장기적으로 기타 잡비가 줄어들고 평판이 올라가 수요가 증가할 수 있습니다. ","적절한 시기에 태양광 패널을 추가하세요.!"
+    ]
+
+    for instruction in instructions:
+        instruction_label = tk.Label(window, text=instruction, font=('malgungothic', 20))
+        instruction_label.pack(anchor='w', padx=150)
+
+    start_button = create_button(window, "Start", go_to_profit_report, bottom_right=True, width=20, height=3)
+
+def go_to_profit_report():
+    global event
+    global oilBuyPrice
+    global elecBuyPrice
+    global oilDemand
+    global elecDemand
+    global eventName
+    global oilBuyPriceList
+    global elecBuyPriceList
+   
+    clear_screen()
+
+    # 계절 설정
+    for i in range(4) :
+        if month in seasonList[i] :
+            season = seasonList[i][0]
+            break
+        
+    # 계절에 맞는 이벤트 선정
+    nowSeasonEvent  = [event[k] for k in range(len(event)) if event[k][10] == season or event[k][10] == None] # 계절에 맞는 이벤트 리스트
+    nowSeasonEventPercent = [] # 계절에 맞는 이벤트 확률대로 넣은거
+    for i in range(len(nowSeasonEvent)) :
+        for j in range(nowSeasonEvent[i][9]) :
+            nowSeasonEventPercent.append(nowSeasonEvent[i][0])
+    r = randint(0, len(nowSeasonEventPercent)-1)
+    for i in range(len(event)) :
+        if event[i][0] == nowSeasonEventPercent[r] :
+            eventNum = i
+            break
+    eventName = event[eventNum][0]
+    # 이벤트 값에 따른 구매가 및 수요 변화
+    oilBuyPrice = randChange(oilBuyPrice, event[eventNum][1], event[eventNum][2]) # 석유 구매가 변화
+    oilDemand = randChange(oilDemand, event[eventNum][5], event[eventNum][6]) # 석유 수요 변화
+    elecBuyPrice = randChange(elecBuyPrice, event[eventNum][3], event[eventNum][4]) # 전기 구매가 변화
+    elecDemand = randChange(elecDemand, event[eventNum][7], event[eventNum][8]) # 전기 수요 변화
+    
+    # 그래프 표시 리스트에 추가
+    oilBuyPriceList.append(oilBuyPrice)
+    elecBuyPriceList.append(elecBuyPrice)
+    
+    canvas = tk.Canvas(window, width=1800, height=1000, highlightthickness=0)
+    canvas.place(x=0, y=0)
+
+    news_label = tk.Label(window, text="수익 보고서", font=('malgungothic', 45))
+    news_label.place(x=220, y=20)
+
+    news_석유수익_label= tk.Label(window, text=f"+ 석유 수익 : {oilProfit}", font=('malgungothic', 30))
+    news_석유수익_label.place(x=220, y=200)
+    
+    news_전기수익_label= tk.Label(window, text=f"+ 전기 수익 : {elecProfit}", font=('malgungothic', 30))
+    news_전기수익_label.place(x=220, y=300)
+
+    news_태양패널_label= tk.Label(window, text=f"- 태양 패널 구입비 : {solar_cost}", font=('malgungothic', 30))
+    news_태양패널_label.place(x=220, y=400)
+
+    news_기타잡비_label= tk.Label(window, text=f"- 기타 잡비 : {guitarist}", font=('malgungothic', 30))
+    news_기타잡비_label.place(x=220, y=500)
+    
+    news_순이익_label= tk.Label(window, text=f"순이익 : {oilProfit+elecProfit-guitarist}", font=('malgungothic', 30))
+    news_순이익_label.place(x=220, y=800)
+
+    money_Label = tk.Label(window, text=f"현재 자산 : {money}", font=('malgungothic', 30))
+    money_Label.place(x=220, y=850)
+
+
+    canvas.create_line(200, 750, 700, 750, fill="black")
+
+
+
+    graph_label = tk.Label(window, text="판매량 추이 그래프", font=('malgungothic', 45))
+    graph_label.place(x=1100, y=20)
+
+    if month ==0:
+        nongraph_label = tk.Label(window, text="정보 없음", font=('malgungothic', 45))
+        nongraph_label.place(x=1100, y=100)
+    else:
+        x = [k for k in range(1, month + 1)]
+        y = oilSellList
+
+        fig, ax = plt.subplots(figsize=(8, 4))
+        ax.plot(x, y, marker='o')
+        ax.set_title('Oil sales trend graph')
+        ax.set_xlabel('month')
+        ax.set_ylabel('sale')
+        ax.grid(True)
+
+        canvas_fig = FigureCanvasTkAgg(fig, master=window)
+        canvas_fig.draw()   
+        canvas_fig.get_tk_widget().place(x=1000, y=100)
+
+        y1 = elecSellList
+
+        fig, ax = plt.subplots(figsize=(8, 4))
+        ax.plot(x, y1, marker='o')
+        ax.set_title('Elec sales trend graph')
+        ax.set_xlabel('month')
+        ax.set_ylabel('sale')
+        ax.grid(True)
+
+        canvas_fig = FigureCanvasTkAgg(fig, master=window)
+        canvas_fig.draw()   
+        canvas_fig.get_tk_widget().place(x=1000, y=500)
+
+    next_button = create_button(window, "다음", go_to_magazine, bottom_right=True, y_offset=0.05)
+
+def go_to_magazine():
+    clear_screen()
+    global month
+
+    canvas = tk.Canvas(window, width=1800, height=1000, highlightthickness=0)
+    canvas.place(x=0, y=0)
+
+    news_label = tk.Label(window, text="weekly news", font=('malgungothic', 50))
+    news_label.place(x=220, y=20)
+
+    month_label = tk.Label(window, text=f"{month+1}개월차", font=('malgungothic', 30))
+    month_label.place(x=100, y=100)
+    
+    news_label = tk.Label(window, text=f"{eventName}", font=('malgungothic', 30))
+    news_label.place(x=100, y=150)
+
+    canvas.create_line(900, 0, 900, 1000, fill="black")
+
+    trend_label = tk.Label(window, text="최근 석유 변동 추이", font=('malgungothic', 30))
+    trend_label.place(x=920, y=20)
+
+    money_Label = tk.Label(window, text=f"현재 자산 : {money}", font=('malgungothic', 30))
+    money_Label.place(x=180, y=850)
+    if month ==0:
+        nongraph_label = tk.Label(window, text="정보 없음", font=('malgungothic', 45))
+        nongraph_label.place(x=1100, y=100)
+    
+    else: 
+        x = [k for k in range(1, month + 2)]
+        y = oilBuyPriceList
+
+        fig, ax = plt.subplots(figsize=(8, 4))
+        ax.plot(x, y, marker='o')
+        ax.set_title('Oil sales trend graph')
+        ax.set_xlabel('month')
+        ax.set_ylabel('sale')
+        ax.grid(True)
+
+        canvas_fig = FigureCanvasTkAgg(fig, master=window)
+        canvas_fig.draw()   
+        canvas_fig.get_tk_widget().place(x=1000, y=100)
+
+        y1 = elecBuyPriceList
+
+        fig, ax = plt.subplots(figsize=(8, 4))
+        ax.plot(x, y1, marker='o')
+        ax.set_title('Elec sales trend graph')
+        ax.set_xlabel('month')
+        ax.set_ylabel('sale')
+        ax.grid(True)
+
+        canvas_fig = FigureCanvasTkAgg(fig, master=window)
+        canvas_fig.draw()   
+        canvas_fig.get_tk_widget().place(x=1000, y=500)
+        
+    next_button = create_button(window, "다음", go_to_setting_price, bottom_right=True)
+
+def go_to_setting_price():
+    global oil_price_entry
+    global oil_purchase_entry
+    global electric_price_entry
+    global electric_purchase_entry
+    
+    clear_screen()
+    canvas = tk.Canvas(window, width=1800, height=1000, highlightthickness=0)
+    canvas.place(x=0, y=0)
+
+    canvas.create_line(900, 0, 900, 1000, fill="black")
+
+    oil_label = tk.Label(window, text="석유", font=('malgungothic', 45))
+    oil_label.place(x=100, y=20)
+
+    oilBuyPrice_label = tk.Label(window, text=f"석유 원가 :{oilBuyPrice} ", font=('malgungothic', 30))
+    oilBuyPrice_label.place(x=100, y=90)
+
+    oil_purchase_label = tk.Label(window, text="구매량", font=('malgungothic', 30))
+    oil_purchase_label.place(x=100, y=140)
+
+    oil_purchase_entry = tk.Entry(window)
+    oil_purchase_entry.place(x=100, y=190, height= 45)
+
+    oil_price_label = tk.Label(window, text="판매가", font=('malgungothic', 30))
+    oil_price_label.place(x=100, y=450)
+
+    oil_price_entry = tk.Entry(window)
+    oil_price_entry.place(x=100, y=500, height= 45)
+
+    electric_label = tk.Label(window, text="전기", font=('malgungothic', 45))
+    electric_label.place(x=920, y=20)
+
+    elecBuyPrice_label = tk.Label(window, text=f"전기 원가 :{elecBuyPrice}", font=('malgungothic', 30))
+    elecBuyPrice_label.place(x=920, y=90)
+    
+    electric_purchase_label = tk.Label(window, text="구매량", font=('malgungothic', 30))
+    electric_purchase_label.place(x=920, y=140)
+    
+    electric_purchase_entry = tk.Entry(window)
+    electric_purchase_entry.place(x=920, y=190, height= 45)
+
+    electric_price_label = tk.Label(window, text="판매가", font=('malgungothic', 30))
+    electric_price_label.place(x=920, y=450)
+
+    electric_price_entry = tk.Entry(window)
+    electric_price_entry.place(x=920, y=500, height= 45)
+
+    money_Label = tk.Label(window, text=f"현재 자산 : {money}", font=('malgungothic', 30))
+    money_Label.place(x=90, y=800)
+
+    main_button = create_button(window, "변화주기", go_to_main, bottom_left=True)
+    this_month_button = create_button(window, "이번월 끝내기", is_correct, bottom_right=True, y_offset=0.1)
+
+def is_correct() :
+    global oilPossess
+    global elecPossess
+    global oilSellPrice
+    global oilBuy
+    global elecSellPrice
+    global elecBuy
+
+    if oil_purchase_entry.get().isdigit() and oil_price_entry.get().isdigit() and electric_price_entry.get().isdigit() and electric_purchase_entry.get().isdigit():
+        oilSellPrice = int(oil_price_entry.get()) #판매가
+        oilBuy = int(oil_purchase_entry.get()) #구매량
+        elecSellPrice = int(electric_price_entry.get()) #판매가
+        elecBuy = int(electric_purchase_entry.get()) #구매량
+        if oilBuy*oilBuyPrice + elecBuy*elecBuyPrice <= money:
+            oilPossess += oilBuy
+            elecPossess += elecBuy
+            main_calculate()
+
+def main_calculate() :
+    global oilPossess
+    global elecPossess
+    global money
+    global month
+    global oilSell
+    global elecProfit
+    global oilProfit
+    global guitarist
+    global oilDemand
+    global elecDemand
+    # 태양열 사용량에 따른 평판
+    nowReputation = reputation + solar * 2
+    print(f'변화전 : {nowReputation}')
+    # 석유 구매량에 따른 평판
+    if oilBuy < 50000 : nowReputation = change(nowReputation, 120)
+    elif oilBuy < 100000 : nowReputation = change(nowReputation, 110)
+    elif oilBuy < 150000 : nowReputation = change(nowReputation, 90)
+    elif oilBuy < 200000 : nowReputation = change(nowReputation, 70)
+    else : nowReputation = change(nowReputation, 50)
+    # 석유 및 전기 가격에 따른 평판
+    priceSum = oilSellPrice + elecSellPrice
+    if priceSum < 2000 : nowReputation = change(nowReputation, 160)
+    elif priceSum < 2500 : nowReputation = change(nowReputation, 130)
+    elif 3000 < priceSum < 3500 : nowReputation = change(nowReputation, 80)
+    elif priceSum >= 3500 : nowReputation = change(nowReputation, 50)
+    print(f'변화후 : {nowReputation}')
+
+    # 평판에 따른 수요 변화
+    oilDemand = change(oilDemand, nowReputation)
+    elecDemand = change(elecDemand, nowReputation)
+    # 휴가철 수요 증가
+    if month in [6, 11] :
+        oilDemand = change(oilDemand, 150)
+        elecDemand = change(elecDemand, 150)
+    
+    # 판매량 계산
+    if oilPossess > oilDemand : oilSell = oilDemand
+    else : oilSell = oilPossess
+    oilPossess -= oilSell
+    oilSellList.append(oilSell)
+    if elecPossess > elecDemand : elecSell = elecDemand
+    else : elecSell = elecPossess
+    elecPossess -= elecSell
+    elecSellList.append(elecSell)
+
+    # 총 수익 계산
+    print(oilSell)
+    oilProfit = oilSell * oilSellPrice
+    elecProfit = elecSell * elecSellPrice
+    money += oilProfit + elecProfit
+    # 기타 잡비 제외시키기
+    guitarist = 2000000 - solar*100000
+    money = money - guitarist
+    month += 1
+    go_to_profit_report()
+
+def go_to_main():
+    global solar
+    global cost
+    
+    clear_screen()
+    
+    main_label = tk.Label(window, text="변화주기", font=('malgungothic', 50))
+    main_label.place(x=100, y=20)
+
+    label2 = tk.Label(window, text="태양광 패널", font=('malgungothic', 30))
+    label2.place(x=920, y=90)
+
+    money_Label = tk.Label(window, text=f"현재 자산 : {money}", font=('malgungothic', 30))
+    money_Label.place(x=180, y=850)
+
+    label4 = tk.Label(window, text=f"보유대수 : {solar}", font=('malgungothic', 30))
+    label4.place(x=920, y=450)
+
+    def add_solar():
+        global solar
+        global money
+        global solar_cost
+
+        if solar < 10 and money >= cost :
+            solar += 1
+            money -= cost
+            solar_cost += cost
+            go_to_main()  # Refresh the main screen to show updated values
+
+    change_button = create_button(window, f"태양광 패널 추가 - {cost}원", add_solar, center_bottom=True, width=30)
+    previous_button = create_button(window, "이전", go_to_setting_price, bottom_right=True)
+
+def clear_screen():
+    for widget in window.winfo_children():
+        widget.destroy()
+
+# Create the main window
+window = tk.Tk()
+window.title("주유소 키우기")
+window.geometry("1800x1000")
+
+# Initial screen
+draw_home()
+
+# Start the Tkinter event loop
+window.mainloop()
