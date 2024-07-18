@@ -94,7 +94,7 @@ def draw_home():
     clear_screen()
     
     
-    title_label = tk.Label(window, text="대격변의 시대에서 주유소로 살아남기!", font=('malgungothic', 50))
+    title_label = tk.Label(window, text="주유소 키우기", font=('malgungothic', 100))
     title_label.pack(pady=200)
 
     start_button = create_button(window, "Start", go_to_profit_report, width=20, height=3)
@@ -197,8 +197,8 @@ def go_to_profit_report():
     graph_label.place(x=1100, y=20)
 
     if month ==0:
-        nongraph_label = tk.Label(window, text="정보 없음", font=('malgungothic', 45))
-        nongraph_label.place(x=1100, y=100)
+        nongraph_label = tk.Label(window, text="정보 없음", font=('malgungothic', 30))
+        nongraph_label.place(x=1100, y=400)
     else:
         x = [k for k in range(1, month + 1)]
         y = oilSellList
@@ -227,7 +227,7 @@ def go_to_profit_report():
         canvas_fig.draw()   
         canvas_fig.get_tk_widget().place(x=1000, y=500)
 
-    next_button = create_button(window, "다음", go_to_magazine, bottom_right=True, y_offset=0.05)
+    next_button = create_button(window, "다음", go_to_magazine, bottom_right=True)
 
 def go_to_magazine():
     clear_screen()
@@ -236,7 +236,7 @@ def go_to_magazine():
     canvas = tk.Canvas(window, width=1800, height=1000, highlightthickness=0)
     canvas.place(x=0, y=0)
 
-    news_label = tk.Label(window, text="weekly news", font=('malgungothic', 50))
+    news_label = tk.Label(window, text="Monthly news", font=('malgungothic', 50))
     news_label.place(x=220, y=20)
 
     month_label = tk.Label(window, text=f"{month+1}개월차", font=('malgungothic', 30))
@@ -247,7 +247,7 @@ def go_to_magazine():
 
     canvas.create_line(900, 0, 900, 1000, fill="black")
 
-    trend_label = tk.Label(window, text="최근 석유 변동 추이", font=('malgungothic', 30))
+    trend_label = tk.Label(window, text="최근 원가 변동 추이", font=('malgungothic', 30))
     trend_label.place(x=920, y=20)
 
     money_Label = tk.Label(window, text=f"현재 자산 : {money}", font=('malgungothic', 30))
@@ -338,7 +338,7 @@ def go_to_setting_price():
     money_Label.place(x=90, y=800)
 
     main_button = create_button(window, "변화주기", go_to_main, bottom_left=True)
-    this_month_button = create_button(window, "이번월 끝내기", is_correct, bottom_right=True, y_offset=0.1)
+    this_month_button = create_button(window, "이번월 끝내기", is_correct, bottom_right=True,width= 15)
 
 def is_correct() :
     global oilPossess
